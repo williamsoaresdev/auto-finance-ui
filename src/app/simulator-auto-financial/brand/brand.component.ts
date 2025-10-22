@@ -1,6 +1,8 @@
-import { Component, output, signal } from '@angular/core';
+import { Component, output, signal, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Brand } from '../../types';
+import { BrandsMockService } from '../../services/brands-mock.service';
+import { catchError, of, tap } from 'rxjs';
 
 @Component({
   selector: 'app-brand',
@@ -9,74 +11,27 @@ import { Brand } from '../../types';
   templateUrl: './brand.component.html',
   styleUrl: './brand.component.css'
 })
-export class BrandComponent {
+export class BrandComponent implements OnInit {
   brandSelected = output<Brand>();
 
   selectedBrand = signal<Brand | null>(null);
+  brands = signal<Brand[]>([]);
 
-  // Mock data - marcas internacionais
-  brands: Brand[] = [
-    {
-      id: 1,
-      name: 'Toyota',
-      country: 'Japan',
-      established: 1937
-    },
-    {
-      id: 2,
-      name: 'Ford',
-      country: 'USA',
-      established: 1903
-    },
-    {
-      id: 3,
-      name: 'BMW',
-      country: 'Germany',
-      established: 1916
-    },
-    {
-      id: 4,
-      name: 'Mercedes-Benz',
-      country: 'Germany',
-      established: 1926
-    },
-    {
-      id: 5,
-      name: 'Audi',
-      country: 'Germany',
-      established: 1909
-    },
-    {
-      id: 6,
-      name: 'Honda',
-      country: 'Japan',
-      established: 1946
-    },
-    {
-      id: 7,
-      name: 'Nissan',
-      country: 'Japan',
-      established: 1933
-    },
-    {
-      id: 8,
-      name: 'Volkswagen',
-      country: 'Germany',
-      established: 1937
-    },
-    {
-      id: 9,
-      name: 'Hyundai',
-      country: 'South Korea',
-      established: 1967
-    },
-    {
-      id: 10,
-      name: 'Chevrolet',
-      country: 'USA',
-      established: 1911
-    }
-  ];
+  private brandsMockService = inject(BrandsMockService);
+
+  ngOnInit(): void {
+    this.loadBrands();
+  }
+
+  private loadBrands(): void {
+    this.brandsMockService.getAllBrands().pipe(
+      tap((brands) => this.brands.set(brands)),
+      catchError((error) => {
+        console.error('Error loading brands:', error);
+        return of(false);
+      }),
+    ).subscribe();
+  }
 
   onBrandSelect(brand: Brand): void {
     this.selectedBrand.set(brand);

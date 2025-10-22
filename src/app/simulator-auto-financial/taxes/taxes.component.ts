@@ -1,14 +1,7 @@
-import { Component, input, output, signal, OnChanges, SimpleChanges, effect } from '@angular/core';
+import { Component, input, output, signal, effect, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { VehicleModel, TaxRate, AdditionalFee, FeeType } from '../../types';
-
-interface CreditProfile {
-  id: string;
-  name: string;
-  description: string;
-  rateAdjustment: number;
-  color: string;
-}
+import { TaxesMockService, CreditProfile } from '../../services/taxes-mock.service';
 
 @Component({
   selector: 'app-taxes',
@@ -17,7 +10,7 @@ interface CreditProfile {
   templateUrl: './taxes.component.html',
   styleUrl: './taxes.component.css'
 })
-export class TaxesComponent implements OnChanges {
+export class TaxesComponent implements OnInit {
   selectedVehicle = input<VehicleModel | null>(null);
   taxesSelected = output<TaxRate>();
 
@@ -25,140 +18,13 @@ export class TaxesComponent implements OnChanges {
   applicableTaxRates = signal<TaxRate[]>([]);
   showRateSelector = signal<boolean>(false);
 
-  creditProfiles: CreditProfile[] = [
-    { 
-      id: 'excellent', 
-      name: 'Excellent Credit', 
-      description: '750+ FICO Score', 
-      rateAdjustment: -1.5,
-      color: 'bg-green-100 text-green-800 border-green-200'
-    },
-    { 
-      id: 'good', 
-      name: 'Good Credit', 
-      description: '680-749 FICO Score', 
-      rateAdjustment: 0,
-      color: 'bg-blue-100 text-blue-800 border-blue-200'
-    },
-    { 
-      id: 'fair', 
-      name: 'Fair Credit', 
-      description: '580-679 FICO Score', 
-      rateAdjustment: 2.5,
-      color: 'bg-yellow-100 text-yellow-800 border-yellow-200'
-    },
-    { 
-      id: 'poor', 
-      name: 'Poor Credit', 
-      description: '500-579 FICO Score', 
-      rateAdjustment: 5.0,
-      color: 'bg-red-100 text-red-800 border-red-200'
-    }
-  ];
+  creditProfiles = signal<CreditProfile[]>([]);
+  selectedCreditProfile = signal<CreditProfile | null>(null);
+  baseTaxRates = signal<TaxRate[]>([]);
 
-  selectedCreditProfile = signal<CreditProfile>(this.creditProfiles[1]);
-
-  baseTaxRates: TaxRate[] = [
-    {
-      id: 1,
-      vehicleYear: 2024,
-      yearRange: '2024 (New)',
-      taxPercentage: 12.5,
-      description: '0km Vehicles - Standard rate for new vehicles',
-      additionalFees: [
-        { name: 'IPVA', amount: 4.0, type: FeeType.PERCENTAGE },
-        { name: 'Mandatory Insurance', amount: 28.77, type: FeeType.FIXED },
-        { name: 'Licensing Fee', amount: 23.22, type: FeeType.FIXED },
-        { name: 'Registration Fee', amount: 35.55, type: FeeType.FIXED }
-      ]
-    },
-    {
-      id: 2,
-      vehicleYear: 2023,
-      yearRange: '2023 (Semi-new)',
-      taxPercentage: 11.8,
-      description: '1 year old vehicles - Small depreciation applied',
-      additionalFees: [
-        { name: 'IPVA', amount: 4.0, type: FeeType.PERCENTAGE },
-        { name: 'Mandatory Insurance', amount: 28.77, type: FeeType.FIXED },
-        { name: 'Licensing Fee', amount: 23.22, type: FeeType.FIXED },
-        { name: 'Inspection', amount: 15.51, type: FeeType.FIXED }
-      ]
-    },
-    {
-      id: 3,
-      vehicleYear: 2022,
-      yearRange: '2022 (Semi-new)',
-      taxPercentage: 11.2,
-      description: '2 year old vehicles - Reduced rate due to depreciation',
-      additionalFees: [
-        { name: 'IPVA', amount: 4.0, type: FeeType.PERCENTAGE },
-        { name: 'Mandatory Insurance', amount: 28.77, type: FeeType.FIXED },
-        { name: 'Licensing Fee', amount: 23.22, type: FeeType.FIXED },
-        { name: 'Inspection', amount: 15.51, type: FeeType.FIXED }
-      ]
-    },
-    {
-      id: 4,
-      vehicleYear: 2021,
-      yearRange: '2021 (Semi-new)',
-      taxPercentage: 10.5,
-      description: '3 year old vehicles - Reduced rate',
-      additionalFees: [
-        { name: 'IPVA', amount: 4.0, type: FeeType.PERCENTAGE },
-        { name: 'Mandatory Insurance', amount: 28.77, type: FeeType.FIXED },
-        { name: 'Licensing Fee', amount: 23.22, type: FeeType.FIXED },
-        { name: 'Inspection', amount: 15.51, type: FeeType.FIXED }
-      ]
-    },
-    {
-      id: 5,
-      vehicleYear: 2020,
-      yearRange: '2016-2020 (Used)',
-      taxPercentage: 9.8,
-      description: '4-8 year old vehicles - Used vehicle rate',
-      additionalFees: [
-        { name: 'IPVA', amount: 4.0, type: FeeType.PERCENTAGE },
-        { name: 'Mandatory Insurance', amount: 28.77, type: FeeType.FIXED },
-        { name: 'Licensing Fee', amount: 23.22, type: FeeType.FIXED },
-        { name: 'Complete Inspection', amount: 22.87, type: FeeType.FIXED },
-        { name: 'Technical Report', amount: 17.27, type: FeeType.FIXED }
-      ]
-    },
-    {
-      id: 6,
-      vehicleYear: 2015,
-      yearRange: '2010-2015 (Used)',
-      taxPercentage: 8.9,
-      description: '9-14 year old vehicles - Reduced rate for older used cars',
-      additionalFees: [
-        { name: 'IPVA', amount: 4.0, type: FeeType.PERCENTAGE },
-        { name: 'Mandatory Insurance', amount: 28.77, type: FeeType.FIXED },
-        { name: 'Licensing Fee', amount: 23.22, type: FeeType.FIXED },
-        { name: 'Complete Inspection', amount: 22.87, type: FeeType.FIXED },
-        { name: 'Technical Report', amount: 17.27, type: FeeType.FIXED },
-        { name: 'Additional Inspection', amount: 75.00, type: FeeType.FIXED }
-      ]
-    },
-    {
-      id: 7,
-      vehicleYear: 2009,
-      yearRange: 'Up to 2009 (Old)',
-      taxPercentage: 7.5,
-      description: '15+ year old vehicles - Minimum rate for old vehicles',
-      additionalFees: [
-        { name: 'IPVA', amount: 4.0, type: FeeType.PERCENTAGE },
-        { name: 'Mandatory Insurance', amount: 28.77, type: FeeType.FIXED },
-        { name: 'Licensing Fee', amount: 23.22, type: FeeType.FIXED },
-        { name: 'Rigorous Inspection', amount: 185.50, type: FeeType.FIXED },
-        { name: 'Complete Technical Report', amount: 150.00, type: FeeType.FIXED },
-        { name: 'Vehicle Inspection', amount: 17.27, type: FeeType.FIXED }
-      ]
-    }
-  ];
+  private taxesMockService = inject(TaxesMockService);
 
   constructor() {
-    // Effect para atualizar applicableTaxRates quando selectedVehicle muda
     effect(() => {
       const vehicle = this.selectedVehicle();
       if (vehicle) {
@@ -167,8 +33,24 @@ export class TaxesComponent implements OnChanges {
     });
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    // Manter para compatibilidade, mas a lógica agora é tratada pelo effect
+  ngOnInit(): void {
+    this.loadCreditProfiles();
+    this.loadBaseTaxRates();
+  }
+
+  private loadCreditProfiles(): void {
+    this.taxesMockService.getCreditProfiles().subscribe(profiles => {
+      this.creditProfiles.set(profiles);
+      // Definir perfil padrão como 'good'
+      const defaultProfile = profiles.find(p => p.id === 'good') || profiles[0];
+      this.selectedCreditProfile.set(defaultProfile);
+    });
+  }
+
+  private loadBaseTaxRates(): void {
+    this.taxesMockService.getBaseTaxRates().subscribe(rates => {
+      this.baseTaxRates.set(rates);
+    });
   }
 
   private generateApplicableTaxRates(): void {
@@ -179,27 +61,29 @@ export class TaxesComponent implements OnChanges {
     }
 
     const vehicleYear = vehicle.year;
+    const baseTaxRates = this.baseTaxRates();
     let baseRate: TaxRate | undefined;
     
     if (vehicleYear >= 2024) {
-      baseRate = this.baseTaxRates.find(rate => rate.vehicleYear === 2024);
+      baseRate = baseTaxRates.find(rate => rate.vehicleYear === 2024);
     } else if (vehicleYear === 2023) {
-      baseRate = this.baseTaxRates.find(rate => rate.vehicleYear === 2023);
+      baseRate = baseTaxRates.find(rate => rate.vehicleYear === 2023);
     } else if (vehicleYear === 2022) {
-      baseRate = this.baseTaxRates.find(rate => rate.vehicleYear === 2022);
+      baseRate = baseTaxRates.find(rate => rate.vehicleYear === 2022);
     } else if (vehicleYear === 2021) {
-      baseRate = this.baseTaxRates.find(rate => rate.vehicleYear === 2021);
+      baseRate = baseTaxRates.find(rate => rate.vehicleYear === 2021);
     } else if (vehicleYear >= 2016 && vehicleYear <= 2020) {
-      baseRate = this.baseTaxRates.find(rate => rate.vehicleYear === 2020);
+      baseRate = baseTaxRates.find(rate => rate.vehicleYear === 2020);
     } else if (vehicleYear >= 2010 && vehicleYear <= 2015) {
-      baseRate = this.baseTaxRates.find(rate => rate.vehicleYear === 2015);
+      baseRate = baseTaxRates.find(rate => rate.vehicleYear === 2015);
     } else {
-      baseRate = this.baseTaxRates.find(rate => rate.vehicleYear === 2009);
+      baseRate = baseTaxRates.find(rate => rate.vehicleYear === 2009);
     }
 
     if (!baseRate) return;
 
-    const newApplicableRates = this.creditProfiles.map((profile, index) => ({
+    const creditProfiles = this.creditProfiles();
+    const newApplicableRates = creditProfiles.map((profile, index) => ({
       ...baseRate!,
       id: baseRate!.id + index * 100,
       taxPercentage: Math.max(0.1, baseRate!.taxPercentage + profile.rateAdjustment),
@@ -208,7 +92,10 @@ export class TaxesComponent implements OnChanges {
     }));
 
     this.applicableTaxRates.set(newApplicableRates);
-    this.selectCreditProfile(this.selectedCreditProfile());
+    const currentProfile = this.selectedCreditProfile();
+    if (currentProfile) {
+      this.selectCreditProfile(currentProfile);
+    }
   }
 
   selectCreditProfile(profile: CreditProfile): void {
@@ -271,7 +158,8 @@ export class TaxesComponent implements OnChanges {
   }
 
   getRateComparisonText(rate: TaxRate): string {
-    const baseRate = this.baseTaxRates.find(br => br.vehicleYear === rate.vehicleYear);
+    const baseTaxRates = this.baseTaxRates();
+    const baseRate = baseTaxRates.find(br => br.vehicleYear === rate.vehicleYear);
     if (!baseRate) return '';
     
     const difference = rate.taxPercentage - baseRate.taxPercentage;
@@ -285,22 +173,23 @@ export class TaxesComponent implements OnChanges {
     if (!vehicle) return 0;
     
     const vehicleYear = vehicle.year;
+    const baseTaxRates = this.baseTaxRates();
     let baseRate: TaxRate | undefined;
     
     if (vehicleYear >= 2024) {
-      baseRate = this.baseTaxRates.find(rate => rate.vehicleYear === 2024);
+      baseRate = baseTaxRates.find(rate => rate.vehicleYear === 2024);
     } else if (vehicleYear === 2023) {
-      baseRate = this.baseTaxRates.find(rate => rate.vehicleYear === 2023);
+      baseRate = baseTaxRates.find(rate => rate.vehicleYear === 2023);
     } else if (vehicleYear === 2022) {
-      baseRate = this.baseTaxRates.find(rate => rate.vehicleYear === 2022);
+      baseRate = baseTaxRates.find(rate => rate.vehicleYear === 2022);
     } else if (vehicleYear === 2021) {
-      baseRate = this.baseTaxRates.find(rate => rate.vehicleYear === 2021);
+      baseRate = baseTaxRates.find(rate => rate.vehicleYear === 2021);
     } else if (vehicleYear >= 2016 && vehicleYear <= 2020) {
-      baseRate = this.baseTaxRates.find(rate => rate.vehicleYear === 2020);
+      baseRate = baseTaxRates.find(rate => rate.vehicleYear === 2020);
     } else if (vehicleYear >= 2010 && vehicleYear <= 2015) {
-      baseRate = this.baseTaxRates.find(rate => rate.vehicleYear === 2015);
+      baseRate = baseTaxRates.find(rate => rate.vehicleYear === 2015);
     } else {
-      baseRate = this.baseTaxRates.find(rate => rate.vehicleYear === 2009);
+      baseRate = baseTaxRates.find(rate => rate.vehicleYear === 2009);
     }
 
     if (!baseRate) return 0;

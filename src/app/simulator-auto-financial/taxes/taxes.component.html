@@ -26,9 +26,9 @@
     
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
       <div
-        *ngFor="let profile of creditProfiles"
+        *ngFor="let profile of creditProfiles()"
         class="border-2 rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md"
-        [class]="profile.id === selectedCreditProfile().id ? profile.color + ' border-opacity-100' : 'border-gray-200 hover:border-gray-300'"
+        [class]="profile.id === selectedCreditProfile()?.id ? profile.color + ' border-opacity-100' : 'border-gray-200 hover:border-gray-300'"
         (click)="selectCreditProfile(profile)"
       >
         <div class="flex items-center justify-between mb-2">
@@ -37,8 +37,8 @@
             <span class="text-sm font-bold mr-2">
               {{ formatPercentage(getAdjustedRate(profile)) }}
             </span>
-            <div class="w-4 h-4 rounded-full border-2" [class]="profile.id === selectedCreditProfile().id ? 'bg-blue-500 border-blue-500' : 'border-gray-300'">
-              <div *ngIf="profile.id === selectedCreditProfile().id" class="w-full h-full rounded-full bg-white scale-50"></div>
+            <div class="w-4 h-4 rounded-full border-2" [class]="profile.id === selectedCreditProfile()?.id ? 'bg-blue-500 border-blue-500' : 'border-gray-300'">
+              <div *ngIf="profile.id === selectedCreditProfile()?.id" class="w-full h-full rounded-full bg-white scale-50"></div>
             </div>
           </div>
         </div>
@@ -54,7 +54,7 @@
       <div class="flex items-center justify-between">
         <div>
           <h5 class="font-medium text-blue-800">Selected Rate</h5>
-          <p class="text-sm text-blue-700">{{ selectedCreditProfile().name }} - {{ selectedVehicle()!.year }} {{ selectedVehicle()!.name }}</p>
+          <p class="text-sm text-blue-700">{{ selectedCreditProfile()?.name }} - {{ selectedVehicle()!.year }} {{ selectedVehicle()!.name }}</p>
         </div>
         <div class="text-right">
           <div class="text-2xl font-bold text-blue-600">{{ formatPercentage(selectedTaxRate()!.taxPercentage) }}</div>
@@ -133,7 +133,7 @@
         </div>
         <div class="flex justify-between">
           <span class="text-green-700">Credit Profile:</span>
-          <span class="font-medium">{{ selectedCreditProfile().name }}</span>
+          <span class="font-medium">{{ selectedCreditProfile()?.name }}</span>
         </div>
         <div class="flex justify-between">
           <span class="text-green-700">Total Additional Fees:</span>

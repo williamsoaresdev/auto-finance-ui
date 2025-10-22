@@ -6,7 +6,7 @@
 
   <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
     <div
-      *ngFor="let brand of brands"
+      *ngFor="let brand of brands()"
       (click)="onBrandSelect(brand)"
       class="cursor-pointer border-2 rounded-lg p-4 transition-all duration-200 hover:shadow-md"
       [class.border-blue-500]="selectedBrand()?.id === brand.id"
