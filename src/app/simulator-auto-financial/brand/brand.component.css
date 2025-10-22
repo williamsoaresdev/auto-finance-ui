@@ -1,0 +1,49 @@
+/* Brand Component Styles */
+
+.brand-card {
+  transition: all 0.3s ease;
+}
+
+.brand-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.brand-logo {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.selected-brand {
+  animation: pulse-blue 1s ease-in-out;
+}
+
+@keyframes pulse-blue {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .brand-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .brand-card {
+    padding: 0.75rem;
+  }
+  
+  .brand-logo {
+    width: 3rem;
+    height: 3rem;
+  }
+}

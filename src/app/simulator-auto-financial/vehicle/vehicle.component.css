@@ -1,0 +1,90 @@
+/* Vehicle Component Styles */
+
+.vehicle-card {
+  transition: all 0.3s ease;
+}
+
+.vehicle-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+
+.vehicle-card.selected {
+  animation: vehicle-selected 0.5s ease-in-out;
+}
+
+@keyframes vehicle-selected {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.price-tag {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.feature-tag {
+  transition: all 0.2s ease;
+}
+
+.feature-tag:hover {
+  background-color: #e5e7eb;
+  transform: scale(1.05);
+}
+
+.vehicle-icon {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Loading animation */
+.loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .vehicle-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .vehicle-card {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .vehicle-details {
+    font-size: 0.75rem;
+  }
+  
+  .feature-tag {
+    font-size: 0.625rem;
+    padding: 0.25rem 0.5rem;
+  }
+}

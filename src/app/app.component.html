@@ -1,0 +1,35 @@
+<nav class="bg-blue-600 shadow-lg">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="flex justify-between h-16">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <h1 class="text-white text-xl font-bold">Auto Finance UI</h1>
+        </div>
+        <div class="ml-10 flex items-baseline space-x-4">
+          <a routerLink="/simulator" routerLinkActive="bg-blue-700" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+            Finance Simulator
+          </a>
+          <a routerLink="/parent" routerLinkActive="bg-blue-700" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+            Parent
+          </a>
+          <a routerLink="/child-one" routerLinkActive="bg-blue-700" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+            Child One
+          </a>
+          <a routerLink="/child-two" routerLinkActive="bg-blue-700" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+            Child Two
+          </a>
+          <a routerLink="/child-three" routerLinkActive="bg-blue-700" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+            Child Three
+          </a>
+          <a routerLink="/contact-us" routerLinkActive="bg-blue-700" class="text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium">
+            Contact Us
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<main class="min-h-screen bg-gray-50">
+  <router-outlet />
+</main>
