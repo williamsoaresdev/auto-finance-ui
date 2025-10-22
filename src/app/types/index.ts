@@ -5,101 +5,12 @@ export interface ApiResponse<T> {
   errors?: string[];
 }
 
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CreateUserRequest {
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface UpdateUserRequest {
-  id: number;
-  name?: string;
-  email?: string;
-}
-
-export interface Vehicle {
-  id: number;
-  make: string;
-  model: string;
-  year: number;
-  price: number;
-  mileage: number;
-  condition: VehicleCondition;
-  features: string[];
-}
-
-export enum VehicleCondition {
-  NEW = 'new',
-  USED = 'used',
-  CERTIFIED = 'certified'
-}
-
-export interface LoanApplication {
-  id: number;
-  userId: number;
-  vehicleId: number;
-  requestedAmount: number;
-  interestRate: number;
-  termMonths: number;
-  monthlyPayment: number;
-  status: LoanStatus;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export enum LoanStatus {
-  PENDING = 'pending',
-  APPROVED = 'approved',
-  REJECTED = 'rejected',
-  ACTIVE = 'active',
-  COMPLETED = 'completed'
-}
-
-export interface CreateLoanApplicationRequest {
-  vehicleId: number;
-  requestedAmount: number;
-  termMonths: number;
-  downPayment: number;
-  annualIncome: number;
-  employmentYears: number;
-}
-
 export interface ContactForm {
   name: string;
   email: string;
   phone: string;
   message: string;
   subject: string;
-}
-
-export interface LoanCalculatorForm {
-  vehiclePrice: number;
-  downPayment: number;
-  interestRate: number;
-  termMonths: number;
-}
-
-export interface LoanCalculatorResult {
-  monthlyPayment: number;
-  totalAmount: number;
-  totalInterest: number;
-  paymentSchedule: PaymentScheduleItem[];
-}
-
-export interface PaymentScheduleItem {
-  month: number;
-  payment: number;
-  principal: number;
-  interest: number;
-  balance: number;
 }
 
 export interface HttpErrorResponse {
@@ -110,13 +21,6 @@ export interface HttpErrorResponse {
   };
   status: number;
   statusText: string;
-}
-
-export interface Environment {
-  production: boolean;
-  apiUrl: string;
-  appName: string;
-  version: string;
 }
 
 export interface Brand {

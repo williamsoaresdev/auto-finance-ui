@@ -13,7 +13,7 @@
       <div class="flex items-center justify-center">
         <div class="flex items-center space-x-4">
           <div
-            *ngFor="let step of steps; let i = index"
+            *ngFor="let step of steps(); let i = index"
             class="flex items-center"
           >
             <!-- Step Circle -->
@@ -46,7 +46,7 @@
 
             <!-- Connector Line -->
             <div
-              *ngIf="i < steps.length - 1"
+              *ngIf="i < steps().length - 1"
               class="w-16 h-1 mx-4 transition-all duration-300"
               [class.bg-green-500]="step.completed"
               [class.bg-gray-200]="!step.completed"
@@ -81,7 +81,7 @@
         <!-- Step 2: Vehicle Selection -->
         <div id="step-2">
           <app-vehicle 
-            [selectedBrand]="selectedBrand"
+            [selectedBrand]="selectedBrand()"
             (vehicleSelected)="onVehicleSelected($event)"
           ></app-vehicle>
         </div>
@@ -89,7 +89,7 @@
         <!-- Step 3: Taxes -->
         <div id="step-3">
           <app-taxes 
-            [selectedVehicle]="selectedVehicle"
+            [selectedVehicle]="selectedVehicle()"
             (taxesSelected)="onTaxesSelected($event)"
           ></app-taxes>
         </div>
@@ -120,8 +120,8 @@
                 <div *ngIf="isFieldInvalid('downPayment')" class="mt-1 text-sm text-red-600">
                   {{ getFieldError('downPayment') }}
                 </div>
-                <div *ngIf="selectedVehicle" class="mt-1 text-xs text-gray-500">
-                  Maximum: {{ formatCurrency(selectedVehicle.price * 0.8) }} (80% of vehicle)
+                <div *ngIf="selectedVehicle()" class="mt-1 text-xs text-gray-500">
+                  Maximum: {{ formatCurrency(selectedVehicle()!.price * 0.8) }} (80% of vehicle)
                 </div>
               </div>
 
@@ -189,11 +189,11 @@
               
               <button
                 type="submit"
-                [disabled]="!canCalculate() || isCalculating"
+                [disabled]="!canCalculate() || isCalculating()"
                 class="bg-green-600 hover:bg-green-700 disabled:bg-gray-300 text-white font-medium py-3 px-8 rounded-md transition-colors flex items-center"
               >
-                <span *ngIf="!isCalculating">Calculate Financing</span>
-                <span *ngIf="isCalculating" class="flex items-center">
+                <span *ngIf="!isCalculating()">Calculate Financing</span>
+                <span *ngIf="isCalculating()" class="flex items-center">
                   <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -215,37 +215,37 @@
           <div class="fade-in-content space-y-3">
             <div class="summary-item flex justify-between items-center">
               <span class="text-gray-600">Brand:</span>
-              <span class="font-medium">{{ selectedBrand?.name || '-' }}</span>
+              <span class="font-medium">{{ selectedBrand()?.name || '-' }}</span>
             </div>
             
             <div class="summary-item flex justify-between items-center">
               <span class="text-gray-600">Vehicle:</span>
-              <span class="font-medium">{{ selectedVehicle?.name || '-' }}</span>
+              <span class="font-medium">{{ selectedVehicle()?.name || '-' }}</span>
             </div>
             
             <div class="summary-item flex justify-between items-center">
               <span class="text-gray-600">Year:</span>
-              <span class="font-medium">{{ selectedVehicle?.year || '-' }}</span>
+              <span class="font-medium">{{ selectedVehicle()?.year || '-' }}</span>
             </div>
             
             <div class="summary-item flex justify-between items-center">
               <span class="text-gray-600">Price:</span>
               <span class="font-bold text-green-600">
-                {{ selectedVehicle ? formatCurrency(selectedVehicle.price) : '-' }}
+                {{ selectedVehicle() ? formatCurrency(selectedVehicle()!.price) : '-' }}
               </span>
             </div>
             
             <div class="summary-item flex justify-between items-center">
               <span class="text-gray-600">Interest Rate:</span>
               <span class="font-medium">
-                {{ selectedTaxRate ? formatPercentage(selectedTaxRate.taxPercentage) : '-' }}
+                {{ selectedTaxRate() ? formatPercentage(selectedTaxRate()!.taxPercentage) : '-' }}
               </span>
             </div>
           </div>
         </div>
 
         <!-- Simulation Results -->
-        <div id="results-section" *ngIf="simulationResult" class="sticky-card bg-gradient-to-br from-green-50 to-blue-50 rounded-lg shadow-md p-6">
+        <div id="results-section" *ngIf="simulationResult()" class="sticky-card bg-gradient-to-br from-green-50 to-blue-50 rounded-lg shadow-md p-6">
           <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
             <svg class="w-6 h-6 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
@@ -257,7 +257,7 @@
             <!-- Monthly Payment -->
             <div class="bg-white rounded-lg p-4 text-center">
               <p class="text-sm text-gray-600 mb-1">Monthly Payment</p>
-              <p class="text-3xl font-bold text-green-600">{{ formatCurrency(simulationResult.monthlyPayment) }}</p>
+              <p class="text-3xl font-bold text-green-600">{{ formatCurrency(simulationResult()!.monthlyPayment) }}</p>
             </div>
 
             <!-- Financial Details -->
@@ -266,27 +266,27 @@
               <div class="space-y-2 text-sm">
                 <div class="flex justify-between">
                   <span class="text-gray-600">Vehicle Price:</span>
-                  <span class="font-medium">{{ formatCurrency(simulationResult.vehiclePrice) }}</span>
+                  <span class="font-medium">{{ formatCurrency(simulationResult()!.vehiclePrice) }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600">Down Payment:</span>
-                  <span class="font-medium">{{ formatCurrency(simulationResult.downPayment) }}</span>
+                  <span class="font-medium">{{ formatCurrency(simulationResult()!.downPayment) }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600">Financed Amount:</span>
-                  <span class="font-medium">{{ formatCurrency(simulationResult.financedAmount) }}</span>
+                  <span class="font-medium">{{ formatCurrency(simulationResult()!.financedAmount) }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600">Additional Fees:</span>
-                  <span class="font-medium">{{ formatCurrency(simulationResult.totalTaxes) }}</span>
+                  <span class="font-medium">{{ formatCurrency(simulationResult()!.totalTaxes) }}</span>
                 </div>
                 <div class="border-t border-gray-200 pt-2 flex justify-between">
                   <span class="font-semibold text-gray-800">Total Amount:</span>
-                  <span class="font-bold text-gray-900">{{ formatCurrency(simulationResult.totalAmount) }}</span>
+                  <span class="font-bold text-gray-900">{{ formatCurrency(simulationResult()!.totalAmount) }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-gray-600">Total Interest:</span>
-                  <span class="font-medium text-red-600">{{ formatCurrency(simulationResult.totalInterest) }}</span>
+                  <span class="font-medium text-red-600">{{ formatCurrency(simulationResult()!.totalInterest) }}</span>
                 </div>
               </div>
             </div>
@@ -300,10 +300,10 @@
                 <div>
                   <p class="text-sm font-medium text-blue-800">Payment Information</p>
                   <p class="text-sm text-blue-700 mt-1">
-                    {{ simulationResult.termMonths }} payments of {{ formatCurrency(simulationResult.monthlyPayment) }}
+                    {{ simulationResult()!.termMonths }} payments of {{ formatCurrency(simulationResult()!.monthlyPayment) }}
                   </p>
                   <p class="text-sm text-blue-700">
-                    Rate of {{ formatPercentage(simulationResult.interestRate) }} per year
+                    Rate of {{ formatPercentage(simulationResult()!.interestRate) }} per year
                   </p>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Brand } from '../../types';
 
@@ -10,9 +10,9 @@ import { Brand } from '../../types';
   styleUrl: './brand.component.css'
 })
 export class BrandComponent {
-  @Output() brandSelected = new EventEmitter<Brand>();
+  brandSelected = output<Brand>();
 
-  selectedBrand: Brand | null = null;
+  selectedBrand = signal<Brand | null>(null);
 
   // Mock data - marcas internacionais
   brands: Brand[] = [
@@ -79,7 +79,7 @@ export class BrandComponent {
   ];
 
   onBrandSelect(brand: Brand): void {
-    this.selectedBrand = brand;
+    this.selectedBrand.set(brand);
     this.brandSelected.emit(brand);
   }
 

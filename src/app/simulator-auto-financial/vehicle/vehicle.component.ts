@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, input, output, signal, OnChanges, SimpleChanges, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Brand, VehicleModel, VehicleCategory, FuelType, TransmissionType } from '../../types';
 
@@ -10,11 +10,11 @@ import { Brand, VehicleModel, VehicleCategory, FuelType, TransmissionType } from
   styleUrl: './vehicle.component.css'
 })
 export class VehicleComponent implements OnChanges {
-  @Input() selectedBrand: Brand | null = null;
-  @Output() vehicleSelected = new EventEmitter<VehicleModel>();
+  selectedBrand = input<Brand | null>(null);
+  vehicleSelected = output<VehicleModel>();
 
-  selectedVehicle: VehicleModel | null = null;
-  filteredVehicles: VehicleModel[] = [];
+  selectedVehicle = signal<VehicleModel | null>(null);
+  filteredVehicles = signal<VehicleModel[]>([]);
 
   vehicles: VehicleModel[] = [
     { id: 1, brandId: 1, name: 'Corolla', year: 2024, price: 24545, category: VehicleCategory.SEDAN, fuelType: FuelType.HYBRID, transmission: TransmissionType.AUTOMATIC, engine: '1.8L Hybrid', features: ['Hybrid', 'Automatic', 'Air Conditioning'] },
@@ -58,23 +58,34 @@ export class VehicleComponent implements OnChanges {
     { id: 30, brandId: 10, name: 'Bolt EV', year: 2024, price: 33636, category: VehicleCategory.HATCHBACK, fuelType: FuelType.ELECTRIC, transmission: TransmissionType.AUTOMATIC, engine: 'Electric', features: ['Electric', 'Compact', 'Affordable'] }
   ];
 
+  constructor() {
+    // Effect para atualizar filteredVehicles quando selectedBrand muda
+    effect(() => {
+      const brand = this.selectedBrand();
+      if (brand) {
+        this.filteredVehicles.set(this.vehicles.filter(vehicle => vehicle.brandId === brand.id));
+        this.selectedVehicle.set(null);
+      } else {
+        this.filteredVehicles.set([]);
+      }
+    });
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['selectedBrand'] && this.selectedBrand) {
-      this.filterVehiclesByBrand();
-      this.selectedVehicle = null;
-    }
+    // Manter para compatibilidade, mas a lógica agora é tratada pelo effect
   }
 
   private filterVehiclesByBrand(): void {
-    if (this.selectedBrand) {
-      this.filteredVehicles = this.vehicles.filter(vehicle => vehicle.brandId === this.selectedBrand!.id);
+    const brand = this.selectedBrand();
+    if (brand) {
+      this.filteredVehicles.set(this.vehicles.filter(vehicle => vehicle.brandId === brand.id));
     } else {
-      this.filteredVehicles = [];
+      this.filteredVehicles.set([]);
     }
   }
 
   onVehicleSelect(vehicle: VehicleModel): void {
-    this.selectedVehicle = vehicle;
+    this.selectedVehicle.set(vehicle);
     this.vehicleSelected.emit(vehicle);
   }
 

@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../services/api';
-import { ContactForm, ApiResponse } from '../types';
+import { ContactForm } from '../types';
+import { catchError, finalize, of, tap } from 'rxjs';
 
 @Component({
   selector: 'app-contact-us',
@@ -12,15 +13,15 @@ import { ContactForm, ApiResponse } from '../types';
   styleUrl: './contact-us.component.css'
 })
 export class ContactUsComponent {
-  contactForm: FormGroup;
-  isSubmitting = false;
-  submitSuccess = false;
-  submitError = '';
+  private fb = inject(FormBuilder);
+  private apiService = inject(ApiService);
 
-  constructor(
-    private fb: FormBuilder,
-    private apiService: ApiService
-  ) {
+  contactForm: FormGroup;
+  isSubmitting = signal<boolean>(false);
+  submitSuccess = signal<boolean>(false);
+  submitError = signal<string>('');
+
+  constructor() {
     this.contactForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
@@ -38,24 +39,26 @@ export class ContactUsComponent {
 
   onSubmit(): void {
     if (this.contactForm.valid) {
-      this.isSubmitting = true;
-      this.submitError = '';
+      this.isSubmitting.set(true);
+      this.submitError.set('');
       
       const contactData: ContactForm = this.contactForm.value;
       
-      this.apiService.submitContactForm(contactData).subscribe({
-        next: (success: boolean) => {
-          this.submitSuccess = true;
+      this.apiService.submitContactForm(contactData).pipe(
+        tap((success: boolean) => {
+          this.submitSuccess.set(true);
           this.contactForm.reset();
-          this.isSubmitting = false;
           console.log('Contact form submitted successfully:', success);
-        },
-        error: (error: unknown) => {
-          this.submitError = 'Failed to submit contact form. Please try again.';
-          this.isSubmitting = false;
+        }),
+        catchError((error: unknown) => {
+          this.submitError.set('Failed to submit contact form. Please try again.');
           console.error('Contact form submission error:', error);
-        }
-      });
+          return of(false);
+        }),
+        finalize(() => {
+          this.isSubmitting.set(false);
+        }),
+      ).subscribe();
     } else {
       this.markFormGroupTouched();
     }
@@ -70,7 +73,7 @@ export class ContactUsComponent {
 
   resetForm(): void {
     this.contactForm.reset();
-    this.submitSuccess = false;
-    this.submitError = '';
+    this.submitSuccess.set(false);
+    this.submitError.set('');
   }
 }

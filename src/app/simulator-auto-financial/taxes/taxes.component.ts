@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, input, output, signal, OnChanges, SimpleChanges, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { VehicleModel, TaxRate, AdditionalFee, FeeType } from '../../types';
 
@@ -18,12 +18,12 @@ interface CreditProfile {
   styleUrl: './taxes.component.css'
 })
 export class TaxesComponent implements OnChanges {
-  @Input() selectedVehicle: VehicleModel | null = null;
-  @Output() taxesSelected = new EventEmitter<TaxRate>();
+  selectedVehicle = input<VehicleModel | null>(null);
+  taxesSelected = output<TaxRate>();
 
-  selectedTaxRate: TaxRate | null = null;
-  applicableTaxRates: TaxRate[] = [];
-  showRateSelector = false;
+  selectedTaxRate = signal<TaxRate | null>(null);
+  applicableTaxRates = signal<TaxRate[]>([]);
+  showRateSelector = signal<boolean>(false);
 
   creditProfiles: CreditProfile[] = [
     { 
@@ -56,7 +56,7 @@ export class TaxesComponent implements OnChanges {
     }
   ];
 
-  selectedCreditProfile = this.creditProfiles[1];
+  selectedCreditProfile = signal<CreditProfile>(this.creditProfiles[1]);
 
   baseTaxRates: TaxRate[] = [
     {
@@ -157,19 +157,28 @@ export class TaxesComponent implements OnChanges {
     }
   ];
 
+  constructor() {
+    // Effect para atualizar applicableTaxRates quando selectedVehicle muda
+    effect(() => {
+      const vehicle = this.selectedVehicle();
+      if (vehicle) {
+        this.generateApplicableTaxRates();
+      }
+    });
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['selectedVehicle'] && this.selectedVehicle) {
-      this.generateApplicableTaxRates();
-    }
+    // Manter para compatibilidade, mas a lógica agora é tratada pelo effect
   }
 
   private generateApplicableTaxRates(): void {
-    if (!this.selectedVehicle) {
-      this.applicableTaxRates = [];
+    const vehicle = this.selectedVehicle();
+    if (!vehicle) {
+      this.applicableTaxRates.set([]);
       return;
     }
 
-    const vehicleYear = this.selectedVehicle.year;
+    const vehicleYear = vehicle.year;
     let baseRate: TaxRate | undefined;
     
     if (vehicleYear >= 2024) {
@@ -190,7 +199,7 @@ export class TaxesComponent implements OnChanges {
 
     if (!baseRate) return;
 
-    this.applicableTaxRates = this.creditProfiles.map((profile, index) => ({
+    const newApplicableRates = this.creditProfiles.map((profile, index) => ({
       ...baseRate!,
       id: baseRate!.id + index * 100,
       taxPercentage: Math.max(0.1, baseRate!.taxPercentage + profile.rateAdjustment),
@@ -198,12 +207,14 @@ export class TaxesComponent implements OnChanges {
       yearRange: `${baseRate!.yearRange} - ${profile.name}`
     }));
 
-    this.selectCreditProfile(this.selectedCreditProfile);
+    this.applicableTaxRates.set(newApplicableRates);
+    this.selectCreditProfile(this.selectedCreditProfile());
   }
 
   selectCreditProfile(profile: CreditProfile): void {
-    this.selectedCreditProfile = profile;
-    const applicableRate = this.applicableTaxRates.find(rate => 
+    this.selectedCreditProfile.set(profile);
+    const applicableRates = this.applicableTaxRates();
+    const applicableRate = applicableRates.find(rate => 
       rate.description.includes(profile.name)
     );
     
@@ -213,12 +224,12 @@ export class TaxesComponent implements OnChanges {
   }
 
   onTaxRateSelect(taxRate: TaxRate): void {
-    this.selectedTaxRate = taxRate;
+    this.selectedTaxRate.set(taxRate);
     this.taxesSelected.emit(taxRate);
   }
 
   toggleRateSelector(): void {
-    this.showRateSelector = !this.showRateSelector;
+    this.showRateSelector.update(value => !value);
   }
 
   calculateTotalAdditionalFees(fees: AdditionalFee[], vehiclePrice: number = 0): number {
@@ -270,9 +281,10 @@ export class TaxesComponent implements OnChanges {
   }
 
   getAdjustedRate(profile: CreditProfile): number {
-    if (!this.selectedVehicle) return 0;
+    const vehicle = this.selectedVehicle();
+    if (!vehicle) return 0;
     
-    const vehicleYear = this.selectedVehicle.year;
+    const vehicleYear = vehicle.year;
     let baseRate: TaxRate | undefined;
     
     if (vehicleYear >= 2024) {

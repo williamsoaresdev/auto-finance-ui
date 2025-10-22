@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
@@ -16,22 +16,24 @@ import { Brand, VehicleModel, TaxRate, FinancingSimulation, SimulationStep, FeeT
   styleUrl: './simulator-auto-financial.component.css'
 })
 export class SimulatorAutoFinancialComponent {
-  selectedBrand: Brand | null = null;
-  selectedVehicle: VehicleModel | null = null;
-  selectedTaxRate: TaxRate | null = null;
+  private formBuilder = inject(FormBuilder);
+
+  selectedBrand = signal<Brand | null>(null);
+  selectedVehicle = signal<VehicleModel | null>(null);
+  selectedTaxRate = signal<TaxRate | null>(null);
+  simulationResult = signal<FinancingSimulation | null>(null);
+  isCalculating = signal<boolean>(false);
   
   simulationForm: FormGroup;
-  simulationResult: FinancingSimulation | null = null;
-  isCalculating = false;
 
-  steps: SimulationStep[] = [
+  steps = signal<SimulationStep[]>([
     { step: 1, title: 'Brand', completed: false },
     { step: 2, title: 'Vehicle', completed: false },
     { step: 3, title: 'Rates', completed: false },
     { step: 4, title: 'Financing', completed: false }
-  ];
+  ]);
 
-  constructor(private formBuilder: FormBuilder) {
+  constructor() {
     this.simulationForm = this.formBuilder.group({
       downPayment: ['', [Validators.required, Validators.min(0)]],
       termMonths: ['', [Validators.required, Validators.min(12), Validators.max(84)]],
@@ -40,10 +42,10 @@ export class SimulatorAutoFinancialComponent {
   }
 
   onBrandSelected(brand: Brand): void {
-    this.selectedBrand = brand;
-    this.selectedVehicle = null;
-    this.selectedTaxRate = null;
-    this.simulationResult = null;
+    this.selectedBrand.set(brand);
+    this.selectedVehicle.set(null);
+    this.selectedTaxRate.set(null);
+    this.simulationResult.set(null);
     this.updateStepCompletion(1, true);
     this.updateStepCompletion(2, false);
     this.updateStepCompletion(3, false);
@@ -53,9 +55,9 @@ export class SimulatorAutoFinancialComponent {
   }
 
   onVehicleSelected(vehicle: VehicleModel): void {
-    this.selectedVehicle = vehicle;
-    this.selectedTaxRate = null;
-    this.simulationResult = null;
+    this.selectedVehicle.set(vehicle);
+    this.selectedTaxRate.set(null);
+    this.simulationResult.set(null);
     this.updateStepCompletion(2, true);
     this.updateStepCompletion(3, false);
     this.updateStepCompletion(4, false);
@@ -66,8 +68,8 @@ export class SimulatorAutoFinancialComponent {
   }
 
   onTaxesSelected(taxRate: TaxRate): void {
-    this.selectedTaxRate = taxRate;
-    this.simulationResult = null;
+    this.selectedTaxRate.set(taxRate);
+    this.simulationResult.set(null);
     this.updateStepCompletion(3, true);
     this.updateStepCompletion(4, false);
     
@@ -75,19 +77,23 @@ export class SimulatorAutoFinancialComponent {
   }
 
   private updateStepCompletion(step: number, completed: boolean): void {
-    const stepIndex = this.steps.findIndex(s => s.step === step);
+    const currentSteps = this.steps();
+    const stepIndex = currentSteps.findIndex(s => s.step === step);
     if (stepIndex !== -1) {
-      this.steps[stepIndex].completed = completed;
+      const updatedSteps = [...currentSteps];
+      updatedSteps[stepIndex].completed = completed;
+      this.steps.set(updatedSteps);
     }
   }
 
   private updateDownPaymentValidation(): void {
-    if (this.selectedVehicle) {
+    const vehicle = this.selectedVehicle();
+    if (vehicle) {
       const downPaymentControl = this.simulationForm.get('downPayment');
       downPaymentControl?.setValidators([
         Validators.required,
         Validators.min(0),
-        Validators.max(this.selectedVehicle.price * 0.8)
+        Validators.max(vehicle.price * 0.8)
       ]);
       downPaymentControl?.updateValueAndValidity();
     }
@@ -95,10 +101,10 @@ export class SimulatorAutoFinancialComponent {
 
   onCalculateFinancing(): void {
     if (this.canCalculate() && this.simulationForm.valid) {
-      this.isCalculating = true;
+      this.isCalculating.set(true);
       
       this.calculateFinancing();
-      this.isCalculating = false;
+      this.isCalculating.set(false);
       this.updateStepCompletion(4, true);
       
       this.scrollToResults();
@@ -108,13 +114,16 @@ export class SimulatorAutoFinancialComponent {
   }
 
   private calculateFinancing(): void {
-    if (!this.selectedVehicle || !this.selectedTaxRate) return;
+    const vehicle = this.selectedVehicle();
+    const taxRate = this.selectedTaxRate();
+    
+    if (!vehicle || !taxRate) return;
 
     const formValues = this.simulationForm.value;
-    const vehiclePrice = this.selectedVehicle.price;
+    const vehiclePrice = vehicle.price;
     const downPayment = Number(formValues.downPayment) || 0;
     const termMonths = Number(formValues.termMonths);
-    const annualInterestRate = this.selectedTaxRate.taxPercentage / 100;
+    const annualInterestRate = taxRate.taxPercentage / 100;
     const monthlyInterestRate = annualInterestRate / 12;
 
     const totalAdditionalFees = this.calculateTotalAdditionalFees();
@@ -139,22 +148,24 @@ export class SimulatorAutoFinancialComponent {
     const totalAmount = monthlyPayment * termMonths + downPayment;
     const totalInterest = totalAmount - vehiclePrice - totalAdditionalFees;
 
-    this.simulationResult = {
-      brandId: this.selectedBrand?.id,
-      vehicleId: this.selectedVehicle.id,
+    const result: FinancingSimulation = {
+      brandId: this.selectedBrand()?.id,
+      vehicleId: vehicle.id,
       vehiclePrice,
       downPayment,
       financedAmount,
-      interestRate: this.selectedTaxRate.taxPercentage,
+      interestRate: taxRate.taxPercentage,
       termMonths,
-      taxRate: this.selectedTaxRate.taxPercentage,
-      additionalFees: this.selectedTaxRate.additionalFees,
+      taxRate: taxRate.taxPercentage,
+      additionalFees: taxRate.additionalFees,
       monthlyPayment,
       totalAmount,
       totalInterest,
       totalTaxes: totalAdditionalFees,
       totalFees: totalAdditionalFees
     };
+
+    this.simulationResult.set(result);
   }
 
   private calculateMonthlyPayment(principal: number, monthlyRate: number, months: number): number {
@@ -165,13 +176,16 @@ export class SimulatorAutoFinancialComponent {
   }
 
   private calculateTotalAdditionalFees(): number {
-    if (!this.selectedTaxRate || !this.selectedVehicle) return 0;
+    const taxRate = this.selectedTaxRate();
+    const vehicle = this.selectedVehicle();
     
-    return this.selectedTaxRate.additionalFees.reduce((total, fee) => {
+    if (!taxRate || !vehicle) return 0;
+    
+    return taxRate.additionalFees.reduce((total, fee) => {
       if (fee.type === FeeType.FIXED) {
         return total + fee.amount;
       } else {
-        return total + (this.selectedVehicle!.price * fee.amount / 100);
+        return total + (vehicle.price * fee.amount / 100);
       }
     }, 0);
   }
@@ -184,16 +198,18 @@ export class SimulatorAutoFinancialComponent {
   }
 
   canCalculate(): boolean {
-    return !!(this.selectedBrand && this.selectedVehicle && this.selectedTaxRate);
+    return !!(this.selectedBrand() && this.selectedVehicle() && this.selectedTaxRate());
   }
 
   resetSimulation(): void {
-    this.selectedBrand = null;
-    this.selectedVehicle = null;
-    this.selectedTaxRate = null;
-    this.simulationResult = null;
+    this.selectedBrand.set(null);
+    this.selectedVehicle.set(null);
+    this.selectedTaxRate.set(null);
+    this.simulationResult.set(null);
     this.simulationForm.reset();
-    this.steps.forEach(step => step.completed = false);
+    
+    const resetSteps = this.steps().map(step => ({ ...step, completed: false }));
+    this.steps.set(resetSteps);
   }
 
   formatCurrency(amount: number): string {
@@ -225,14 +241,15 @@ export class SimulatorAutoFinancialComponent {
   }
 
   getCompletionPercentage(): number {
-    const completedSteps = this.steps.filter(step => step.completed).length;
-    return (completedSteps / this.steps.length) * 100;
+    const currentSteps = this.steps();
+    const completedSteps = currentSteps.filter(step => step.completed).length;
+    return (completedSteps / currentSteps.length) * 100;
   }
 
   getCurrentStep(): number {
-    if (!this.selectedBrand) return 1;
-    if (!this.selectedVehicle) return 2;
-    if (!this.selectedTaxRate) return 3;
+    if (!this.selectedBrand()) return 1;
+    if (!this.selectedVehicle()) return 2;
+    if (!this.selectedTaxRate()) return 3;
     return 4;
   }
 
