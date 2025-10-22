@@ -5,13 +5,27 @@
   </h3>
 
   <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <!-- Loading State -->
+    <div *ngIf="brands().length === 0" data-testid="loading" class="col-span-full text-center py-8">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+      <p class="text-gray-500 mt-2">Loading brands...</p>
+    </div>
+
     <div
       *ngFor="let brand of brands()"
       (click)="onBrandSelect(brand)"
+      (keydown.enter)="onBrandSelect(brand)"
+      (keydown.space)="onBrandSelect(brand)"
+      data-testid="brand-item"
       class="cursor-pointer border-2 rounded-lg p-4 transition-all duration-200 hover:shadow-md"
       [class.border-blue-500]="selectedBrand()?.id === brand.id"
       [class.bg-blue-50]="selectedBrand()?.id === brand.id"
       [class.border-gray-200]="selectedBrand()?.id !== brand.id"
+      [class.selected]="selectedBrand()?.id === brand.id"
+      role="button"
+      tabindex="0"
+      [attr.aria-label]="'Select ' + brand.name + ' brand'"
+      [attr.aria-pressed]="selectedBrand()?.id === brand.id"
     >
       <!-- Brand Logo Placeholder -->
       <div class="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
@@ -19,7 +33,7 @@
       </div>
 
       <!-- Brand Name -->
-      <h4 class="text-center font-medium text-gray-800 mb-1">{{ brand.name }}</h4>
+      <h4 data-testid="brand-name" class="text-center font-medium text-gray-800 mb-1">{{ brand.name }}</h4>
       
       <!-- Brand Info -->
       <div class="text-center text-xs text-gray-500">

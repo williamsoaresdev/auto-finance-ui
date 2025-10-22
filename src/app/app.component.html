@@ -1,3 +1,8 @@
+<!-- Skip Navigation Link for Accessibility -->
+<a href="#main-content" class="skip-link sr-only focus:not-sr-only focus:absolute focus:top-0 focus:left-0 bg-blue-600 text-white p-2 z-50">
+  Skip to main content
+</a>
+
 <nav class="bg-blue-600 shadow-lg">
   <div class="max-w-7xl mx-auto px-4">
     <div class="flex justify-between h-16">
@@ -30,6 +35,14 @@
   </div>
 </nav>
 
-<main class="min-h-screen bg-gray-50">
+<main id="main-content" class="min-h-screen bg-gray-50">
   <router-outlet />
 </main>
+
+<footer class="bg-gray-800 text-white py-6">
+  <div class="max-w-7xl mx-auto px-4">
+    <div class="text-center">
+      <p>&copy; 2025 Auto Finance UI. All rights reserved.</p>
+    </div>
+  </div>
+</footer>

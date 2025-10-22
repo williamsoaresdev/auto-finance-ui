@@ -25,10 +25,11 @@ export class BrandComponent implements OnInit {
 
   private loadBrands(): void {
     this.brandsMockService.getAllBrands().pipe(
-      tap((brands) => this.brands.set(brands)),
+      tap((brands) => this.brands.set(brands || [])),
       catchError((error) => {
         console.error('Error loading brands:', error);
-        return of(false);
+        this.brands.set([]);
+        return of([]);
       }),
     ).subscribe();
   }
